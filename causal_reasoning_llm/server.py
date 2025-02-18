@@ -209,4 +209,4 @@ if __name__ == "__main__":
     print("\nServer will be available at http://localhost:8000")
     
     # Run with uvicorn
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, log_level="info", reload=True)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
