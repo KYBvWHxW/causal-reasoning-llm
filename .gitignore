@@ -1,3 +1,4 @@
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -18,10 +19,37 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+# Virtual Environment
 .env
 .venv
 venv/
 ENV/
+
+# IDE
 .idea/
 .vscode/
+
+# OS
 .DS_Store
+.directory
+Thumbs.db
+
+# Testing
+.coverage
+.pytest_cache/
+htmlcov/
+
+# Logs
+*.log
+logs/
+
+# Local configuration
+.env.local
+.env.*.local
+config.local.yaml
+
+# Personal files
+*.personal
+*.private
+.netrc
