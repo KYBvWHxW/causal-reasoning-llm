@@ -47,17 +47,38 @@ SCENARIOS = {
     "economics": {
         "C1": "Economic recession",
         "C2": "Market competition",
-        "E": "Business failure"
+        "E": "Business failure",
+        "description": "研究经济衰退和市场竞争如何影响企业生存"
     },
     "meteorology": {
         "C1": "Low pressure system",
         "C2": "High humidity",
-        "E": "Rainfall"
+        "E": "Rainfall",
+        "description": "研究低气压系统和高湿度如何影响降雨"
     },
     "sociology": {
         "C1": "Social isolation",
         "C2": "Financial stress",
-        "E": "Depression"
+        "E": "Depression",
+        "description": "研究社交隔离和经济压力如何影响抑郁症"
+    },
+    "healthcare": {
+        "C1": "Genetic predisposition",
+        "C2": "Environmental factors",
+        "E": "Disease onset",
+        "description": "研究遗传倾向和环境因素如何影响疾病发生"
+    },
+    "education": {
+        "C1": "Study habits",
+        "C2": "Teacher quality",
+        "E": "Academic performance",
+        "description": "研究学习习惯和教师质量如何影响学术表现"
+    },
+    "technology": {
+        "C1": "Technical innovation",
+        "C2": "Market demand",
+        "E": "Product success",
+        "description": "研究技术创新和市场需求如何影响产品成功"
     }
 }
 
