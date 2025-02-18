@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from server import app, ModelType, SCENARIOS
+from causal_reasoning_llm.server import app, ModelType, SCENARIOS
 
 client = TestClient(app)
 
@@ -68,8 +68,8 @@ def test_explaining_away_effect(model):
 def test_invalid_inputs():
     # 测试无效的域
     response = client.get("/api/v1/schema/invalid_domain")
-    assert response.status_code == 200
-    assert "error" in response.json()
+    assert response.status_code == 422
+    assert "detail" in response.json()
     
     # 测试无效的查询变量
     request_data = {
@@ -79,8 +79,8 @@ def test_invalid_inputs():
         "e_state": 1
     }
     response = client.post("/api/v1/evaluate_causal_reasoning", json=request_data)
-    assert response.status_code == 200
-    assert "error" in response.json()
+    assert response.status_code == 422
+    assert "detail" in response.json()
     
     # 测试无效的状态值
     request_data = {

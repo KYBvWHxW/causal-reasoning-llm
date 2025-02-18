@@ -1,6 +1,6 @@
 from typing import Dict, Optional, List
-from fastapi import FastAPI, APIRouter, Query
-from pydantic import BaseModel
+from fastapi import FastAPI, APIRouter, Query, HTTPException
+from pydantic import BaseModel, field_validator, ConfigDict
 from enum import Enum
 import uvicorn
 import random
@@ -13,6 +13,9 @@ class ModelType(str, Enum):
     CLAUDE = "claude"
     GEMINI = "gemini"
     GPT35 = "gpt-3.5"
+    
+    def __str__(self) -> str:
+        return self.value
 
 class CausalRequest(BaseModel):
     domain: str
@@ -21,6 +24,19 @@ class CausalRequest(BaseModel):
     c2_state: Optional[int] = None
     e_state: Optional[int] = None
     model: Optional[ModelType] = ModelType.GPT4
+    
+    @property
+    def model_name(self) -> str:
+        return str(self.model)
+    
+    model_config = ConfigDict(validate_assignment=True)
+    
+    @field_validator('c1_state', 'c2_state', 'e_state')
+    @classmethod
+    def validate_state(cls, v: Optional[int]) -> Optional[int]:
+        if v is not None and v not in [0, 1]:
+            raise ValueError("State values must be 0 or 1")
+        return v
 
 def simulate_model_response(domain: str, query_var: str, states: Dict[str, Optional[int]], model: ModelType) -> float:
     """模拟不同模型的因果推理响应"""
@@ -38,7 +54,14 @@ def simulate_model_response(domain: str, query_var: str, states: Dict[str, Optio
     if states.get('E') == 1 and query_var in ['C1', 'C2']:
         other_cause = 'C2' if query_var == 'C1' else 'C1'
         if states.get(other_cause) == 1:
-            base_probability *= 0.7  # 解释效应
+            # 根据模型调整解释效应的强度
+            explaining_away_strength = {
+                ModelType.GPT4: 0.4,    # 较强的解释效应
+                ModelType.CLAUDE: 0.55,  # 最强的解释效应
+                ModelType.GEMINI: 0.5,   # 较弱的解释效应
+                ModelType.GPT35: 0.4    # 中等的解释效应
+            }
+            base_probability *= explaining_away_strength[model]
     
     return min(1.0, max(0.0, base_probability + model_bias[model]))
 
@@ -86,7 +109,7 @@ SCENARIOS = {
 async def get_domain_schema(domain: str) -> Dict:
     """Get the causal schema for a specific domain"""
     if domain not in SCENARIOS:
-        return {"error": f"Domain {domain} not found"}
+        raise HTTPException(status_code=422, detail=f"Invalid domain {domain}")
     
     scenario = SCENARIOS[domain]
     schema = f"Causal Schema for {domain}:\n" + \
@@ -102,6 +125,13 @@ async def get_domain_schema(domain: str) -> Dict:
 
 @router.post("/evaluate_causal_reasoning")
 async def evaluate_causal_reasoning(request: CausalRequest) -> Dict:
+    # 验证查询变量
+    if request.query_variable not in ["C1", "C2", "E"]:
+        raise HTTPException(status_code=422, detail=f"Invalid query variable {request.query_variable}")
+    
+    # 验证域
+    if request.domain not in SCENARIOS:
+        raise HTTPException(status_code=422, detail=f"Invalid domain {request.domain}")
     """Evaluate causal reasoning for a collider graph scenario
     
     Args:
@@ -146,9 +176,9 @@ async def evaluate_causal_reasoning(request: CausalRequest) -> Dict:
         "scenario": scenario,
         "states": states,
         "query_variable": request.query_variable,
-        "model": request.model,
+        "model": request.model_name,
         "probability": probability,
-        "explanation": f"Based on the {request.model} model's analysis, "
+        "explanation": f"Based on the {request.model_name} model's analysis, "
                       f"the likelihood of {scenario[request.query_variable]} being present is {probability:.2%}."
     }
 
